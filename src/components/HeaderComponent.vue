@@ -1,76 +1,105 @@
 <script setup lang="ts">
-import { useCloned } from '@vueuse/core';
+import { useVModel } from '@vueuse/core';
+import { GetCaracterFilterModel } from 'src/models/CaracterModels';
 import { ref } from 'vue';
 
-const { cloned: searchHandler, sync: resetSearch } = useCloned<{
-  value: string;
-}>({
-  value: '',
-});
+const props = defineProps<{
+  modelValue: GetCaracterFilterModel;
+}>();
 
-const { cloned: filterHandler, sync: resetFilter } = useCloned<{
-  visible: boolean;
-  status: string;
-  origing: string;
-}>({
-  visible: false,
-  status: '',
-  origing: '',
-});
+const emits = defineEmits(['update:modelValue', 'filter']);
+const model = useVModel(props, 'modelValue', emits);
+
+const filter = () => emits('filter', model.value);
+const filterDialogStatus = ref<boolean>(false);
 </script>
 <template>
-  <q-responsive :ratio="16 / 4" class="container relative-position">
-    <div class="absolute overlay"></div>
-    <div class="rounded-borders text-white flex flex-center">
-      <div>
-        <div class="logoContainer">
-          <q-img
-            src="/src/assets/Rick-and-Morty.png"
-            class="fit"
-            :ratio="16 / 6"
+  <div
+    class="container relative-position flex flex-center"
+    :style="{ height: '400px' }"
+  >
+    <div class="absolute overlay fit"></div>
+    <div class="text-white flex flex-center content full-width q-pa-lg">
+      <q-img src="/src/assets/Rick-and-Morty.png" class="fit" :ratio="16 / 6" />
+      <q-input
+        v-model="model.name"
+        label="Search character"
+        standout
+        bg-color="black"
+        color="white"
+        label-color="white"
+        class="full-width"
+      >
+        <template v-slot:append>
+          <q-btn
+            round
+            dense
+            flat
+            icon="filter"
+            color="white"
+            @click="() => (filterDialogStatus = true)"
           />
-        </div>
-        <q-input
-          v-model="searchHandler.value"
-          label="Search character"
-          standout
-          bg-color="black"
-          color="white"
-          label-color="white"
-        >
-          <template v-slot:append>
-            <q-btn
-              round
-              dense
-              flat
-              icon="add"
-              color="white"
-              @click="() => (filterHandler.visible = true)"
-            />
-          </template>
-        </q-input>
-      </div>
+        </template>
+      </q-input>
     </div>
-  </q-responsive>
-  <q-dialog v-model="filterHandler.visible">
+  </div>
+  <q-dialog v-model="filterDialogStatus">
     <q-card>
       <q-card-section>
-        <div class="text-h6">Alert</div>
+        <div class="text-h6">Filters</div>
       </q-card-section>
 
-      <q-card-section class="q-pt-none">
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum
-        repellendus sit voluptate voluptas eveniet porro. Rerum blanditiis
-        perferendis totam, ea at omnis vel numquam exercitationem aut, natus
-        minima, porro labore.
+      <q-card-section class="q-pt-none row q-col-gutter-lg">
+        <div class="col-6">
+          <q-input
+            filled
+            v-model="model.name"
+            label="Name"
+            class="full-width"
+          />
+        </div>
+        <div class="col-6">
+          <q-select
+            filled
+            v-model="model.species"
+            :options="['Alien', 'Human']"
+            label="Species"
+            class="full-width"
+          />
+        </div>
+        <div class="col-6">
+          <q-select
+            filled
+            v-model="model.status"
+            :options="['Alive', 'Dead', 'unknown']"
+            label="Status"
+            class="full-width"
+          />
+        </div>
+        <div class="col-6">
+          <q-select
+            filled
+            v-model="model.gender"
+            :options="['Male', 'Female', 'Genderless', 'unknown']"
+            label="Gender"
+            class="full-width"
+          />
+        </div>
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-btn flat label="OK" color="primary" v-close-popup />
+        <q-btn
+          flat
+          label="Search"
+          color="green-5"
+          @click="filter"
+          v-close-popup
+        />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
+
 <style scoped>
 .container {
   background: url('/src/assets/9b2c48a104f68a01f797779306c092b6.png'), #000;
@@ -78,8 +107,8 @@ const { cloned: filterHandler, sync: resetFilter } = useCloned<{
   background-position: center center;
 }
 
-.logoContainer {
-  width: 500px;
+.content {
+  max-width: 500px;
 }
 
 .overlay {

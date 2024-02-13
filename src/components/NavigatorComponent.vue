@@ -1,11 +1,17 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { useVModel } from '@vueuse/core';
+import { Gender } from 'src/models/CaracterModels';
 
-const current = ref<string>('all');
+const props = defineProps<{
+  modelValue?: Gender;
+}>();
+
+const emits = defineEmits(['update:modelValue']);
+const model = useVModel(props, 'modelValue', emits);
 </script>
 <template>
   <q-tabs
-    v-model="current"
+    v-model="model"
     class="bg-grey-4 text-grey-10"
     indicator-color="green-5"
   >
