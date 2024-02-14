@@ -42,7 +42,7 @@ const setData = async () => {
       await rickAndMortyApi.getCharacters(filterHandler.value)
     ).data;
   } catch {
-    alert('Oh!. Something bad have happened...');
+    alert('Oh no!. A network related issue have happened...');
     data.value = null;
   }
 };
@@ -125,11 +125,13 @@ onMounted(async () => {
           </div>
         </div>
       </template>
+
       <template v-if="data === undefined">
         <div class="flex flex-center q-py-md">
           <q-spinner size="10em" :thickness="10" color="green-5" />
         </div>
       </template>
+
       <div v-if="data?.info?.pages" class="q-pa-lg flex flex-center">
         <q-pagination
           v-model="filterHandler.page"

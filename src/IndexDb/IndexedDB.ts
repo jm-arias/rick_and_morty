@@ -10,6 +10,7 @@ function setDB(callback: (db: IDBDatabase) => void) {
     dataBaseStores.Favorites,
     1 /* database version, trigger onupgradeneeded event */
   );
+
   request.onerror = console.error;
   request.onsuccess = () => {
     callback(request.result /* the request result is the database */);

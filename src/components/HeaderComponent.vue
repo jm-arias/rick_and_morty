@@ -62,6 +62,7 @@ const searchByName = () => {
       </div>
     </div>
   </div>
+
   <q-dialog v-model="filterDialogStatus">
     <q-card>
       <q-card-section>

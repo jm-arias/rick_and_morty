@@ -31,7 +31,7 @@ const setEpisodes = async () => {
       (await rickAndMortyApi.getEpisodesByIds(episodesIds.value)).data,
     ].flat();
   } catch {
-    alert('Oh!. Something bad have happened...');
+    alert('Oh no!. A network related issue have happened...');
   }
 };
 

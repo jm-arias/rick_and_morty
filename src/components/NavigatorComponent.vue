@@ -22,12 +22,15 @@ const updateValue = (value: Gender | '') => {
     indicator-color="green-5"
   >
     <q-route-tab name="" label="all" @click="() => updateValue('')" />
+
     <q-route-tab name="Male" label="male" @click="() => updateValue('Male')" />
+
     <q-route-tab
       name="Female"
       label="female"
       @click="() => updateValue('Female')"
     />
+
     <q-route-tab
       name="Genderless"
       label="genderless"
