@@ -11,7 +11,7 @@ const model = useVModel(props, 'modelValue', emits);
 
 const updateValue = (value: Gender | '') => {
   model.value = value;
-  emits('change');
+  emits('change', { gender: value, page: 1 });
 };
 </script>
 

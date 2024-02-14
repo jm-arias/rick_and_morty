@@ -35,7 +35,8 @@ const { cloned: characterDetailsHandler, sync: resetCharacterDetails } =
 
 const { ready, start } = useTimeout(100, { controls: true });
 
-const setData = async () => {
+const setData = async (override?: GetCharacterFilterModel) => {
+  override && (filterHandler.value = override);
   data.value = undefined;
   try {
     data.value = (
@@ -141,7 +142,7 @@ onMounted(async () => {
           flat
           color="grey"
           active-color="green-5"
-          @update:model-value="setData"
+          @update:model-value="() => setData()"
         />
       </div>
     </div>
