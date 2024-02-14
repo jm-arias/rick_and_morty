@@ -5,9 +5,7 @@ import FooterComponent from 'src/components/FooterComponent.vue';
 <template>
   <q-layout view="lHh Lpr lFf">
     <q-page-container>
-      <div>
-        <router-view />
-      </div>
+      <router-view />
     </q-page-container>
     <FooterComponent />
   </q-layout>

@@ -1,7 +1,8 @@
-<script setup lang="ts"></script>
 <template>
   <div
-    class="flex items-center justify-center bg-red"
+    class="flex flex-center text-white bg-green-10"
     :style="{ height: '50px' }"
-  ></div>
+  >
+    Powered by José Arias
+  </div>
 </template>

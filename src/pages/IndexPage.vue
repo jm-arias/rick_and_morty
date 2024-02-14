@@ -1,93 +1,101 @@
 <script setup lang="ts">
-import { useCloned } from '@vueuse/core';
-import CaracterCardComponent from 'src/components/CaracterCardComponent.vue';
-import { computed, onMounted, ref, watch } from 'vue';
+import { useCloned, useTimeout, until } from '@vueuse/core';
+import CharacterCardComponent from 'src/components/CharacterCardComponent.vue';
+import { computed, onMounted, ref } from 'vue';
 import {
-  CaracterModel,
-  CaracterResponseModel,
-} from 'src/models/CaracterModels';
+  CharacterModel,
+  CharacterResponseModel,
+} from 'src/models/CharacterModels';
 import HeaderComponent from 'src/components/HeaderComponent.vue';
 import NavigatorComponent from 'src/components/NavigatorComponent.vue';
 import { rickAndMortyApi } from 'src/network/rickandmortyapi';
-import CaracterProfileComponent from 'src/components/CaracterProfileComponent.vue';
-import { GetCaracterFilterModel } from 'src/models/CaracterModels';
+import CharacterProfileComponent from 'src/components/CharacterProfileComponent.vue';
+import { GetCharacterFilterModel } from 'src/models/CharacterModels';
+import { useQuasar } from 'quasar';
+
+const data = ref<CharacterResponseModel | null | undefined>(null);
 
 const { cloned: filterHandler, sync: resetFilter } =
-  useCloned<GetCaracterFilterModel>({
+  useCloned<GetCharacterFilterModel>({
     name: undefined,
     status: undefined,
     species: undefined,
-    gender: undefined,
+    gender: '',
     page: 1,
   });
 
-const { cloned: caracterDetailsHandler, sync: resetCaracterDetails } =
+const { cloned: characterDetailsHandler, sync: resetCharacterDetails } =
   useCloned<{
     visible: boolean;
-    data: CaracterModel | null;
+    data: CharacterModel | null;
   }>({
     visible: false,
     data: null,
   });
 
-const setData = async (filter: GetCaracterFilterModel) => {
-  data.value = (await rickAndMortyApi.getCaracters(filter)).data;
+const { ready, start } = useTimeout(100, { controls: true });
+
+const setData = async () => {
+  data.value = undefined;
+  try {
+    data.value = (
+      await rickAndMortyApi.getCharacters(filterHandler.value)
+    ).data;
+  } catch {
+    alert('Oh!. Something bad have happened...');
+    data.value = null;
+  }
 };
 
-const setCaracter = (id: number) => {
-  caracterDetailsHandler.value = {
+const setCharacter = (id: number) => {
+  characterDetailsHandler.value = {
     visible: true,
     data: data.value?.results.find((item) => item.id === id) ?? null,
   };
 };
 
-const resetCaracterDetailsHandler = (id?: number) => {
-  resetCaracterDetails();
-  id && setCaracter(id);
+const resetCharacterDetailsHandler = async (id?: number) => {
+  start();
+  await until(ready).toBe(true);
+  resetCharacterDetails();
+  id && setCharacter(id);
 };
 
-const data = ref<CaracterResponseModel | null>(null);
+const resetFilterHandler = async () => {
+  resetFilter();
+  await setData();
+};
 
-/* const filteredData = computed(() =>
+const otherInterestingCharactersIds = computed(() =>
   data.value?.results.filter(
     (item) =>
-      (!filterHandler.value.name ||
-        item.name.includes(filterHandler.value.name)) &&
-      (!filterHandler.value.status ||
-        item.status === filterHandler.value.status) &&
-      (!filterHandler.value.species ||
-        item.species === filterHandler.value.species) &&
-      (!filterHandler.value.gender ||
-        item.gender.toLowerCase() === filterHandler.value.gender.toLowerCase())
-  )
-); */
-
-const otherCaracter = computed(() =>
-  data.value?.results.filter(
-    (item) =>
-      item.id < +`${caracterDetailsHandler.value.data?.id}` + 4 &&
-      item.id > +`${caracterDetailsHandler.value.data?.id}` - 4 &&
-      item.id !== +`${caracterDetailsHandler.value.data?.id}`
+      item.id < +`${characterDetailsHandler.value.data?.id}` + 4 &&
+      item.id > +`${characterDetailsHandler.value.data?.id}` - 4 &&
+      item.id !== +`${characterDetailsHandler.value.data?.id}`
   )
 );
+
+const $q = useQuasar();
+const alert = (message: string) => {
+  $q.dialog({
+    title: 'Alert',
+    message: message,
+  });
+};
 
 onMounted(async () => {
-  await setData({});
+  await setData();
 });
-
-watch(
-  () => filterHandler.value,
-  async (n) => {
-    await setData(n);
-  },
-  { deep: true }
-);
 </script>
 
 <template>
   <q-page>
-    <header-component :model-value="filterHandler" @filter="setData" />
-    <navigator-component v-model="filterHandler.gender" />
+    <header-component
+      :model-value="filterHandler"
+      @filter="setData"
+      @reset="resetFilterHandler"
+    />
+    <navigator-component v-model="filterHandler.gender" @change="setData" />
     <div class="q-px-md q-py-xl content">
       <div>
         <q-btn
@@ -98,40 +106,51 @@ watch(
           label="Favorites only"
         />
       </div>
-      <div class="row q-py-md" :class="data?.results ? 'q-col-gutter-lg' : ''">
+      <template v-if="data?.results">
         <div
-          v-for="item in data?.results"
-          :key="item.id"
-          class="col-6 col-sm-4"
+          class="row q-py-md"
+          :class="data?.results ? 'q-col-gutter-lg' : ''"
         >
-          <caracter-card-component
-            v-bind="item"
-            item
-            class="fit"
-            @click="() => setCaracter(item.id)"
-          />
+          <div
+            v-for="item in data?.results"
+            :key="item.id"
+            class="col-6 col-sm-4"
+          >
+            <character-card-component
+              v-bind="item"
+              item
+              class="fit"
+              @click="() => setCharacter(item.id)"
+            />
+          </div>
         </div>
-      </div>
-      <div class="q-pa-lg flex flex-center">
+      </template>
+      <template v-if="data === undefined">
+        <div class="flex flex-center q-py-md">
+          <q-spinner size="10em" :thickness="10" color="green-5" />
+        </div>
+      </template>
+      <div v-if="data?.info?.pages" class="q-pa-lg flex flex-center">
         <q-pagination
-          v-if="filterHandler.page"
           v-model="filterHandler.page"
-          :max="+`${data?.info?.pages}`"
+          :max="data.info.pages"
+          :max-pages="data.info.pages"
           direction-links
           flat
           color="grey"
           active-color="green-5"
+          @update:model-value="setData"
         />
       </div>
     </div>
     <q-dialog
-      v-if="caracterDetailsHandler.data"
-      v-model="caracterDetailsHandler.visible"
+      v-if="characterDetailsHandler.data"
+      v-model="characterDetailsHandler.visible"
     >
-      <caracter-profile-component
-        :caracter="caracterDetailsHandler.data"
-        :interesting-caracters="otherCaracter"
-        @close="resetCaracterDetailsHandler"
+      <character-profile-component
+        :character="characterDetailsHandler.data"
+        :interesting-characters="otherInterestingCharactersIds"
+        @close="resetCharacterDetailsHandler"
       />
     </q-dialog>
   </q-page>

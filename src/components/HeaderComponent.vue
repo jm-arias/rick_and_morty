@@ -1,17 +1,25 @@
 <script setup lang="ts">
 import { useVModel } from '@vueuse/core';
-import { GetCaracterFilterModel } from 'src/models/CaracterModels';
+import { GetCharacterFilterModel } from 'src/models/CharacterModels';
 import { ref } from 'vue';
 
 const props = defineProps<{
-  modelValue: GetCaracterFilterModel;
+  modelValue: GetCharacterFilterModel;
 }>();
 
-const emits = defineEmits(['update:modelValue', 'filter']);
+const emits = defineEmits(['update:modelValue', 'filter', 'reset']);
 const model = useVModel(props, 'modelValue', emits);
 
-const filter = () => emits('filter', model.value);
 const filterDialogStatus = ref<boolean>(false);
+
+const filter = () => emits('filter', model.value);
+
+const reset = () => emits('reset');
+
+const searchByName = () => {
+  model.value = { name: model.value.name, page: 1 };
+  filter();
+};
 </script>
 <template>
   <div
@@ -21,26 +29,37 @@ const filterDialogStatus = ref<boolean>(false);
     <div class="absolute overlay fit"></div>
     <div class="text-white flex flex-center content full-width q-pa-lg">
       <q-img src="/src/assets/Rick-and-Morty.png" class="fit" :ratio="16 / 6" />
-      <q-input
-        v-model="model.name"
-        label="Search character"
-        standout
-        bg-color="black"
-        color="white"
-        label-color="white"
-        class="full-width"
-      >
-        <template v-slot:append>
-          <q-btn
-            round
-            dense
-            flat
-            icon="filter"
-            color="white"
-            @click="() => (filterDialogStatus = true)"
-          />
-        </template>
-      </q-input>
+      <div class="flex q-gutter-sm full-width no-wrap">
+        <q-input
+          v-model="model.name"
+          label="Search character"
+          filled
+          color="green-5"
+          bg-color="black"
+          label-color="white"
+          class="full-width"
+          input-class="text-white"
+          @clear="reset"
+        >
+          <template v-slot:append>
+            <q-btn round dense flat icon="close" color="white" @click="reset" />
+          </template>
+        </q-input>
+        <q-btn
+          dense
+          icon="search"
+          color="green-5"
+          class="q-pa-md"
+          @click="searchByName"
+        />
+        <q-btn
+          dense
+          icon="list"
+          color="orange"
+          class="q-pa-md"
+          @click="() => (filterDialogStatus = true)"
+        />
+      </div>
     </div>
   </div>
   <q-dialog v-model="filterDialogStatus">
@@ -88,12 +107,13 @@ const filterDialogStatus = ref<boolean>(false);
       </q-card-section>
 
       <q-card-actions align="right">
+        <q-btn label="Search" color="green-5" v-close-popup @click="filter" />
         <q-btn
-          flat
-          label="Search"
+          label="Clear"
+          outline
           color="green-5"
-          @click="filter"
           v-close-popup
+          @click="reset"
         />
       </q-card-actions>
     </q-card>
