@@ -146,7 +146,7 @@ const information = computed(() => [
         <div
           v-for="item in interestingCharacters"
           :key="item.id"
-          class="col-12 col-sm-6 col-md-4"
+          class="col-12 col-sm-6"
         >
           <character-card-component
             v-bind="item"

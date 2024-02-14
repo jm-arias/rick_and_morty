@@ -78,6 +78,7 @@ const searchByName = () => {
             class="full-width"
           />
         </div>
+
         <div class="col-6">
           <q-select
             filled
@@ -87,6 +88,7 @@ const searchByName = () => {
             class="full-width"
           />
         </div>
+
         <div class="col-6">
           <q-select
             filled
@@ -96,6 +98,7 @@ const searchByName = () => {
             class="full-width"
           />
         </div>
+
         <div class="col-6">
           <q-select
             filled

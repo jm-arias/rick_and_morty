@@ -39,7 +39,7 @@ onMounted(async () => {
       <q-card class="my-card overflow-hidden fit" flat bordered>
         <q-card-section :horizontal="$q.screen.gt.sm" class="q-pa-none">
           <div class="col-5 relative-position">
-            <q-img :src="image" :ratio="1 / 1" class="fit" />
+            <q-img :src="image" :ratio="1 / 1" class="fit" fit="cover" />
           </div>
           <div class="q-px-md text-left text-weight-regular">
             <div class="q-my-sm">
