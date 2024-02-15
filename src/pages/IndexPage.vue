@@ -12,6 +12,7 @@ import { rickAndMortyApi } from 'src/network/rickandmortyapi';
 import CharacterProfileComponent from 'src/components/CharacterProfileComponent.vue';
 import { GetCharacterFilterModel } from 'src/models/CharacterModels';
 import { useQuasar } from 'quasar';
+import { indexDb } from 'src/IndexDb/IndexedDB';
 
 const data = ref<CharacterResponseModel | null | undefined>(null);
 
@@ -36,6 +37,7 @@ const { cloned: characterDetailsHandler, sync: resetCharacterDetails } =
 const { ready, start } = useTimeout(100, { controls: true });
 
 const setData = async (override?: GetCharacterFilterModel) => {
+  toggleFavorite(false);
   override && (filterHandler.value = override);
   data.value = undefined;
   try {
@@ -84,6 +86,27 @@ const alert = (message: string) => {
   });
 };
 
+const onlyFavorites = ref<boolean>(false);
+
+const { cloned: favorites, sync: resetFavorites } = useCloned<
+  { id: number; favorite: boolean }[]
+>([]);
+
+const setFavorites = async () => (favorites.value = await indexDb.getAll());
+
+const toggleFavorite = (active: boolean) => {
+  if (active) {
+    setFavorites();
+  } else {
+    resetFavorites();
+  }
+  onlyFavorites.value = active;
+};
+
+const filterByFavorite = (target: number) =>
+  !onlyFavorites.value ||
+  !!favorites.value.find((item) => item.id === target && item.favorite);
+
 onMounted(async () => {
   await setData();
 });
@@ -101,10 +124,12 @@ onMounted(async () => {
       <div>
         <q-btn
           rounded
-          outline
+          unelevated
+          :outline="!onlyFavorites"
           color="green-5"
           icon="star"
           label="Favorites only"
+          @click="() => toggleFavorite(!onlyFavorites)"
         />
       </div>
       <template v-if="data?.results">
@@ -118,6 +143,7 @@ onMounted(async () => {
             class="col-6 col-sm-4"
           >
             <character-card-component
+              v-if="filterByFavorite(item.id)"
               v-bind="item"
               item
               class="fit"

@@ -35,6 +35,12 @@ async function get(id: IDBValidKey | IDBKeyRange) {
   return value as { id: number; favorite: boolean };
 }
 
+async function getAll() {
+  const db = await openDB(dataBaseStores.Favorites);
+  const value = await db.getAll(dataBaseStores.Favorites);
+  return value as { id: number; favorite: boolean }[];
+}
+
 async function set(data: { id: number; favorite: boolean }) {
   setDB(async () => {
     const _db = await openDB(dataBaseStores.Favorites);
@@ -61,6 +67,7 @@ async function setBatch(data: (CharacterModel & { favorite?: boolean })[]) {
 
 export const indexDb = {
   get,
+  getAll,
   set,
   setBatch,
   initDB,
